@@ -6,19 +6,23 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--token")
-parser.add_argument("--repo")
+parser.add_argument("--repo", action='append')
 
 args = parser.parse_args()
 
-repo = Repo(args.repo)
-assert not repo.bare
+commits = []
+for repo in args.repo:
+    repo = Repo(repo)
+    assert not repo.bare
 
-commits = list(repo.iter_commits())
+    commits += list(repo.iter_commits())
+
 commits = [c for c in commits
            if "Merge branch" not in c.message
            and "Adding new branch" not in c.message
            and "[maven-release-plugin]" not in c.message
            and "Preparing merge on master" not in c.message
+           and "Bump to version" not in c.message
            ]
 slack = Slacker(args.token)
 chan = "#gitquiz"
